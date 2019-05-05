@@ -268,7 +268,7 @@ class CollisionDetector: UpdateEventListener, Component {
 
         // BottomLeft hit
         if (distX > 0 && distY < 0) {
-            return BOTzTOM_LEFT
+            return BOTTOM_LEFT
         }
 
         // BottomRight hit

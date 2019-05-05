@@ -10,7 +10,7 @@ import com.dntatme.arkanoid.entities.Entities
 import com.dntatme.arkanoid.entities.Paddle
 import com.dntatme.arkanoid.helpers.Point
 
-val MAX_FPS = 60
+val MAX_FPS = 40
 val FRAME_PERIOD = 1000 / MAX_FPS
 
 class GameThread(var surfaceHolder: SurfaceHolder, var gameView: GameView): Thread() {
@@ -18,7 +18,7 @@ class GameThread(var surfaceHolder: SurfaceHolder, var gameView: GameView): Thre
 
     var beginTime: Long = 0
     var timeDiff: Long = 0
-    var sleepTime: Int = 0
+    var sleepTime: Long = 0
 
     var canvas: Canvas? = null
     var block = Block(gameView, Color.RED, 1, Point(10, 10, 10), 100, 100, false)
@@ -27,10 +27,9 @@ class GameThread(var surfaceHolder: SurfaceHolder, var gameView: GameView): Thre
 
         while (running) {
             canvas = null
-
+            beginTime = System.nanoTime()
             try {
 
-                beginTime = System.currentTimeMillis()
 
                 canvas = surfaceHolder.lockCanvas()
                 synchronized(surfaceHolder) {
@@ -42,6 +41,18 @@ class GameThread(var surfaceHolder: SurfaceHolder, var gameView: GameView): Thre
                             entity.draw(canvas, gameView)
                         }
                         Log.d("DRAWN", "block")
+                    }
+                    timeDiff = (System.nanoTime() - beginTime) / 1000000
+
+                    sleepTime = (FRAME_PERIOD - timeDiff)
+
+
+                    if (sleepTime > 0) {
+                        try {
+                            Thread.sleep(sleepTime)
+                        } catch (e: InterruptedException) {
+                        }
+
                     }
                 }
 
