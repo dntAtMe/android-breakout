@@ -9,9 +9,10 @@ import com.dntatme.arkanoid.entities.Block
 import com.dntatme.arkanoid.entities.Entities
 import com.dntatme.arkanoid.entities.Paddle
 import com.dntatme.arkanoid.helpers.Point
+import com.dntatme.arkanoid.helpers.Score
 
-val MAX_FPS = 40
-val FRAME_PERIOD = 1000 / MAX_FPS
+const val MAX_FPS = 30
+const val FRAME_PERIOD = 1000 / MAX_FPS
 
 class GameThread(var surfaceHolder: SurfaceHolder, var gameView: GameView): Thread() {
     var running: Boolean = true
@@ -21,7 +22,6 @@ class GameThread(var surfaceHolder: SurfaceHolder, var gameView: GameView): Thre
     var sleepTime: Long = 0
 
     var canvas: Canvas? = null
-    var block = Block(gameView, Color.RED, 1, Point(10, 10, 10), 100, 100, false)
 
     override fun run() {
 
@@ -29,17 +29,16 @@ class GameThread(var surfaceHolder: SurfaceHolder, var gameView: GameView): Thre
             canvas = null
             beginTime = System.nanoTime()
             try {
-
-
                 canvas = surfaceHolder.lockCanvas()
                 synchronized(surfaceHolder) {
                     if (canvas != null) {
                         gameView.update()
-                        canvas?.drawColor(Color.TRANSPARENT, PorterDuff.Mode.MULTIPLY);
+                        canvas?.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
                         val entities = Entities.drawableEntities.values
                         for (entity in entities) {
                             entity.draw(canvas, gameView)
                         }
+                        Score.textShape.draw(canvas)
                         Log.d("DRAWN", "block")
                     }
                     timeDiff = (System.nanoTime() - beginTime) / 1000000

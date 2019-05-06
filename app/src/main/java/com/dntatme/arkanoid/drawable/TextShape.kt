@@ -1,24 +1,26 @@
 package com.dntatme.arkanoid.drawable
 
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Paint
-import android.graphics.Region
-import android.util.Log
 import com.dntatme.arkanoid.helpers.Point
 
-class CircleShape(var point: Point, var radius: Int, paint: Paint = Paint(), val colorId: Int): Shape(paint) {
+class TextShape(val point: Point, paint: Paint = Paint(), val colorId: Int): Shape(paint) {
 
     init {
         paint.color = colorId
     }
 
+    var text: String = ""
     override fun draw(canvas: Canvas?) {
-        canvas?.drawCircle((point.x.toFloat()), (point.y.toFloat()), radius.toFloat(), paint)
+        canvas?.drawText(text, point.x.toFloat(), point.y.toFloat(), paint)
+    }
 
+    fun changeText(string: String) {
+        text = string
     }
 
     override fun changeColor(color: Int) {
         paint.color = color
     }
+
 }
