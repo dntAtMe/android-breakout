@@ -8,20 +8,17 @@ import android.view.MotionEvent
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 import com.dntatme.arkanoid.components.CollisionDetector
-import com.dntatme.arkanoid.entities.Ball
-import com.dntatme.arkanoid.entities.Block
-import com.dntatme.arkanoid.entities.Entities
-import com.dntatme.arkanoid.entities.Paddle
-import com.dntatme.arkanoid.helpers.Point
-import com.dntatme.arkanoid.helpers.TouchEventListener
-import com.dntatme.arkanoid.helpers.UpdateEventListener
+import com.dntatme.arkanoid.entities.*
+import com.dntatme.arkanoid.helpers.*
+import kotlinx.android.synthetic.main.fragment_game.view.*
 import kotlin.math.roundToInt
+import kotlin.random.Random
 
 class GameView(context: Context): SurfaceView(context), SurfaceHolder.Callback  {
 
     private lateinit var touchEventListeners: ArrayList<TouchEventListener>
     private lateinit var updateEventListeners: ArrayList<UpdateEventListener>
-
+    lateinit var ball: Ball
     var gameThread: GameThread? = null
 
     init {
@@ -35,28 +32,48 @@ class GameView(context: Context): SurfaceView(context), SurfaceHolder.Callback  
         val x = this.width * 0.5
         val y = this.height * 0.88
 
-        val paddle = Paddle(this, Color.WHITE, 1, Point(x.roundToInt(), y.roundToInt(), 0), paddleWidth, paddleHeight)
-        val ball = Ball(this, Color.GREEN, 2, Point(this.width / 2, this.height / 2, 0), 20)
-        val block1 = Block(this, Color.RED, 3, Point(120, 100, 0), 80,80, true)
-        val block2 = Block(this, Color.RED, 3, Point(240, 100, 0), 80,80, true)
-        val block3 = Block(this, Color.RED, 3, Point(360, 100, 0), 80,80, true)
-        val block4 = Block(this, Color.GRAY, 3, Point(480, 100, 0), 80,80, false)
+        Score.initText( Point(10, (this.height * 0.78).toInt(), -1), Entities.blockSize.toFloat() )
+        val paddle = Paddle(this, Color.WHITE, 1, Point(x.toInt(), y.toInt(), 0), paddleWidth, paddleHeight)
+        ball = Ball(this, Color.GREEN, 2, Point((this.width / 2), (this.height / 2), 0), 20)
+
 
         val collisionDetector = CollisionDetector()
         touchEventListeners = ArrayList()
         updateEventListeners = ArrayList()
 
+        Entities.drawableEntities.clear()
+        Entities.lastId = 1
         touchEventListeners.add(paddle)
         updateEventListeners.add(ball)
         updateEventListeners.add(paddle)
         updateEventListeners.add(collisionDetector)
         Entities.drawableEntities[0] = ball
         Entities.drawableEntities[1] = paddle
-        Entities.drawableEntities[2] = block1
-        Entities.drawableEntities[3] = block2
-        Entities.drawableEntities[4] = block3
-        Entities.drawableEntities[5] = block4
+        Entities.putAll(initLevel(80, 20))
 
+    }
+
+    private fun initLevel(blockSize: Int, space: Int): List<DrawableEntity> {
+        var entities = ArrayList<DrawableEntity>()
+        var hitPoints = 1
+        var isDestructible: Boolean
+        for (nextY in blockSize / 2 until height / 2 step blockSize + space) {
+            for (nextX in blockSize / 2 until width step blockSize + space) {
+                if (Random.nextFloat() < 0.2f) {
+                    continue
+                }
+                isDestructible = Random.nextFloat() > 0.1f
+                val color = if (isDestructible) {
+                    hitPoints = Random.nextInt(1, 4)
+                    BlockColors.colors[hitPoints-1]
+                } else {
+                    Color.GRAY
+                }
+                entities.add(Block(this, color, 3, Point(nextX, nextY, 0), blockSize,blockSize, hitPoints, isDestructible))
+            }
+        }
+
+        return entities
     }
 
     fun update() {
@@ -73,8 +90,12 @@ class GameView(context: Context): SurfaceView(context), SurfaceHolder.Callback  
     }
 
     override fun surfaceChanged(holder: SurfaceHolder?, format: Int, width: Int, height: Int) {
+        ball.velocity.displaySizeSpeedMultiplicator = width / 200.0f
+        ball.velocity.speedMultiplicator = ball.velocity.BASE_SPEED_MULTIPLICATOR * ball.velocity.displaySizeSpeedMultiplicator
 
     }
+
+
 
     override fun surfaceDestroyed(holder: SurfaceHolder?) {
 

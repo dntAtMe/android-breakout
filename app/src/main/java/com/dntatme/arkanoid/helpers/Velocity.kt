@@ -25,7 +25,7 @@ class Velocity(val view: View): Component {
     var yDirection: Int = 0
 
     internal var speedMultiplicator: Float = 0.toFloat()
-    private var displaySizeSpeedMultiplicator = 1f
+    var displaySizeSpeedMultiplicator = 1f
 
     init {
         displaySizeSpeedMultiplicator = view.width / 200.0f
