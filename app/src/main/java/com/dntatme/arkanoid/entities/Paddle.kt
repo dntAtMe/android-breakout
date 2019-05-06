@@ -42,10 +42,10 @@ class Paddle(
         }
 
         if (touched) {
-            Log.d("GAME_BAR", "TOUCHED")
+            //Log.d("GAME_BAR", "TOUCHED")
             if (event.action == MotionEvent.ACTION_MOVE) {
                 point.x = event.x.toInt()
-                Log.d("GAME_BAR", point.x.toString())
+                //Log.d("GAME_BAR", point.x.toString())
             }
         }
 

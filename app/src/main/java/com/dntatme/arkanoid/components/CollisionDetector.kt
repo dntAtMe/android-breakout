@@ -7,6 +7,7 @@ import android.R.attr.y
 import android.R.attr.x
 import android.graphics.Rect
 import android.graphics.Region
+import android.support.v4.math.MathUtils.clamp
 import android.util.Log
 import com.dntatme.arkanoid.drawable.RectShape
 import com.dntatme.arkanoid.entities.*
@@ -14,6 +15,10 @@ import com.dntatme.arkanoid.helpers.Velocity
 import java.lang.Math.pow
 import java.util.HashMap
 import kotlin.math.abs
+import android.view.View.Y
+import android.view.View.X
+
+
 
 
 class CollisionDetector: UpdateEventListener, Component {
@@ -27,6 +32,8 @@ class CollisionDetector: UpdateEventListener, Component {
     private val TOP_RIGHT = 6
     private val BOTTOM_RIGHT = 7
     private val BOTTOM_LEFT = 8
+
+    private var recentBarCollisionHelper = 0
 
     fun checkGameSpaceCollisions(view: GameView) {
 
@@ -60,10 +67,11 @@ class CollisionDetector: UpdateEventListener, Component {
         val ball = Entities.drawableEntities[Entities.BALL] as Ball
         val paddle = Entities.drawableEntities[Entities.BAR] as Paddle
 
-        if (intersects(ball, paddle)) {
-            Log.d("GAME_COLLISION", "INTERSECTION")
+        if (recentBarCollisionHelper <= 0) {
 
-                Log.d("GAME_COLLISION", "ELSE")
+            val intersection = intersects(ball, paddle)
+            if (intersection) {
+                Log.d("GAME_COLLISION", "INTERSECTION")
                 val diffX = paddle.point.x - ball.point.x
                 val maxDiff = paddle.width / 2
 
@@ -79,7 +87,10 @@ class CollisionDetector: UpdateEventListener, Component {
                     ball.velocity.xDirection = -1
                 }
 
-
+                recentBarCollisionHelper = 10
+            }
+        } else {
+            recentBarCollisionHelper--
         }
     }
 
@@ -94,6 +105,8 @@ class CollisionDetector: UpdateEventListener, Component {
                     block.onBlockHit()
                     Log.d("GAME_COLLISION", "INTERSECTION")
                     val hitDirection = checkHitDirection(ball, block)
+                    Log.d("GAME_COLLISION", hitDirection.toString())
+
                     if (hitDirection != NO_HIT) {
                         detectedCollisions[hitDirection] = block
                     }
@@ -160,70 +173,51 @@ class CollisionDetector: UpdateEventListener, Component {
     private fun setBallDirectionBasedOnPossibleDirections(ball: Ball, directions: BooleanArray) {
 
 
-        if (!directions[BOTTOM]) {
+        if (directions[TOP] && !directions[BOTTOM]) {
             ball.velocity.yDirection = 1
         }
 
-        if (!directions[TOP]) {
+        if (directions[BOTTOM] && !directions[TOP]) {
             ball.velocity.yDirection = -1
         }
 
-        if (!directions[LEFT]) {
+        if (directions[RIGHT] && !directions[LEFT]) {
             ball.velocity.xDirection = -1
         }
 
-        if (!directions[RIGHT]) {
+        if (directions[LEFT] && !directions[RIGHT]) {
             ball.velocity.xDirection = 1
         }
     }
 
 
     private fun intersects(ball: Ball, paddle: Paddle): Boolean {
-        val distX = abs(ball.point.x - paddle.point.x)
-        val distY = abs(ball.point.y - paddle.point.y)
+        // Find the closest point to the circle within the rectangle
+        val closestX = clamp(ball.point.x, paddle.point.x - paddle.width / 2, paddle.point.x + paddle.width / 2)
+        val closestY = clamp(ball.point.y, paddle.point.y - paddle.height / 2, paddle.point.y + paddle.height / 2)
 
-        if (distX > paddle.width / 2 + ball.radius) {
-            return false
-        }
-        if (distY > paddle.height / 2 + ball.radius) {
-            return false
-        }
+        // Calculate the distance between the circle's center and this closest point
+        val distanceX = ball.point.x - closestX
+        val distanceY = ball.point.y - closestY
 
-        if (distX <= paddle.width / 2) {
-            return true
-        }
-        if (distY <= paddle.height / 2) {
-            return true
-        }
+        // If the distance is less than the circle's radius, an intersection occurs
+        val distanceSquared = distanceX * distanceX + distanceY * distanceY
+        return distanceSquared < ball.radius * ball.radius
 
-        val cornerDistSq = pow((distX - paddle.width / 2).toDouble(), 2.0) + pow((distY - paddle.height / 2).toDouble(), 2.0)
-
-        return cornerDistSq <= pow(ball.radius.toDouble(), 2.0)
     }
 
     private fun intersects(ball: Ball, block: Block): Boolean {
-        val distX = abs(ball.point.x - block.point.x)
-        val distY = abs(ball.point.y - block.point.y)
+        // Find the closest point to the circle within the rectangle
+        val closestX = clamp(ball.point.x, block.point.x - block.width / 2, block.point.x + block.width / 2)
+        val closestY = clamp(ball.point.y, block.point.y - block.height / 2, block.point.y + block.height / 2)
 
-        if (distX > block.width / 2 + ball.radius) {
-            return false
-        }
-        if (distY > block.height / 2 + ball.radius) {
-            return false
-        }
+        // Calculate the distance between the circle's center and this closest point
+        val distanceX = ball.point.x - closestX
+        val distanceY = ball.point.y - closestY
 
-        if (distX <= block.width / 2) {
-            ball.velocity.xDirection *= -1
-            return true
-        }
-        if (distY <= block.height / 2) {
-            ball.velocity.yDirection *= -1
-            return true
-        }
-
-        val cornerDistSq = pow((distX - block.width / 2).toDouble(), 2.0) + pow((distY - block.height / 2).toDouble(), 2.0)
-
-        return cornerDistSq <= pow(ball.radius.toDouble(), 2.0)
+        // If the distance is less than the circle's radius, an intersection occurs
+        val distanceSquared = distanceX * distanceX + distanceY * distanceY
+        return distanceSquared < ball.radius * ball.radius
     }
 
     private fun checkHitDirection(ball: Ball, block: Block): Int {

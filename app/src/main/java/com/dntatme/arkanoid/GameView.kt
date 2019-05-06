@@ -37,9 +37,10 @@ class GameView(context: Context): SurfaceView(context), SurfaceHolder.Callback  
 
         val paddle = Paddle(this, Color.WHITE, 1, Point(x.roundToInt(), y.roundToInt(), 0), paddleWidth, paddleHeight)
         val ball = Ball(this, Color.GREEN, 2, Point(this.width / 2, this.height / 2, 0), 20)
-        val block1 = Block(this, Color.RED, 3, Point(100, 100, 0), 80,50, true)
-        val block2 = Block(this, Color.RED, 3, Point(200, 100, 0), 80,50, true)
-        val block3 = Block(this, Color.RED, 3, Point(300, 100, 0), 80,50, true)
+        val block1 = Block(this, Color.RED, 3, Point(120, 100, 0), 80,80, true)
+        val block2 = Block(this, Color.RED, 3, Point(240, 100, 0), 80,80, true)
+        val block3 = Block(this, Color.RED, 3, Point(360, 100, 0), 80,80, true)
+        val block4 = Block(this, Color.GRAY, 3, Point(480, 100, 0), 80,80, false)
 
         val collisionDetector = CollisionDetector()
         touchEventListeners = ArrayList()
@@ -54,6 +55,7 @@ class GameView(context: Context): SurfaceView(context), SurfaceHolder.Callback  
         Entities.drawableEntities[2] = block1
         Entities.drawableEntities[3] = block2
         Entities.drawableEntities[4] = block3
+        Entities.drawableEntities[5] = block4
 
     }
 
